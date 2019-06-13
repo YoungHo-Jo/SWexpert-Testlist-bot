@@ -23,8 +23,6 @@ bot = telegram.Bot(token=token)
 def sendMsg(msg):
   bot.sendMessage(chat_id=secret_json['chatId'], text=msg) 
 
-if time.localtime(time.time()).tm_hour == 9:
-    sendMsg('I am alive')
 
 with requests.Session() as s:
   login_req  = s.post(API_HOST + '/main/identity/anonymous/login.do', data=secret_json)
@@ -34,18 +32,26 @@ with requests.Session() as s:
   test_list_req = s.get(API_HOST + '/main/sst/common/userTestList.do?')
   if test_list_req.status_code != 200:
     raise Exception("User Test List Req Error")
-
+    
   soup = bs(test_list_req.text, 'html.parser')
     
-  list_table = str(soup.select('body > div.sub-m > div > table > tbody')[0].encode('utf-8'))
+  list_table = soup.select('body > div.sub-m > div > table > tbody')[0].get_text()
+  list_table = list_table.replace('\n', '\n\n')
+
   filename = 'usertestlist.txt'
   file_path = os.path.join(script_dir, './' + filename) 
   try:
     f = open(file_path, "r+") 
     f.seek(0)
     data = f.read()
+
+    if time.localtime(time.time()).tm_hour == 9:
+        sendMsg('I am alive')
+        sendMsg(data)
+        
     if data != list_table:
       sendMsg("Check the site")
+      sendMsg(list_table)
       f.seek(0)
       f.write(list_table)
       f.truncate()
