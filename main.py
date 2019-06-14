@@ -32,8 +32,8 @@ with requests.Session() as s:
   test_list_req = s.get(API_HOST + '/main/sst/common/userTestList.do?')
   if test_list_req.status_code != 200:
     raise Exception("User Test List Req Error")
-    
-  soup = bs(test_list_req.text, 'html.parser')
+  
+  soup = bs(test_list_req.content, 'html.parser', from_encoding='UTF-8')
     
   list_table = soup.select('body > div.sub-m > div > table > tbody')[0].get_text()
   list_table = list_table.replace('\n', '\n\n')
@@ -41,7 +41,7 @@ with requests.Session() as s:
   filename = 'usertestlist.txt'
   file_path = os.path.join(script_dir, './' + filename) 
   try:
-    f = open(file_path, "r+") 
+    f = open(file_path, "r+", encoding='utf-8') 
     f.seek(0)
     data = f.read()
 
@@ -49,14 +49,14 @@ with requests.Session() as s:
         sendMsg('I am alive')
         sendMsg(data)
         
-    if data != list_table:
+    if hash(data) != hash(list_table):
       sendMsg("Check the site")
       sendMsg(list_table)
       f.seek(0)
       f.write(list_table)
       f.truncate()
   except:
-    f = open(file_path, "w+")
+    f = open(file_path, "w+", encoding='utf-8')
     f.write(list_table)
   finally:
     f.close()
