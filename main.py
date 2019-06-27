@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup as bs
 import telegram
 import time
 import os
+import hashlib
 
 API_HOST = 'https://www.swexpertacademy.com'
 script_dir = os.path.dirname(__file__)
@@ -44,20 +45,26 @@ with requests.Session() as s:
     f = open(file_path, "r+", encoding='utf-8') 
     f.seek(0)
     data = f.read()
+    print(data)
 
     if time.localtime(time.time()).tm_hour == 9:
         sendMsg('I am alive')
-        sendMsg(data)
-        
-    if hash(data) != hash(list_table):
+        sendMsg(list_table)
+       
+    hash_obj = hashlib.sha256(list_table.encode('utf8'))
+    hash_dig = hash_obj.hexdigest()
+    print(hash_dig)
+    if data != str(hash_dig):
+      print(hash_dig)
       sendMsg("Check the site")
       sendMsg(list_table)
       f.seek(0)
-      f.write(list_table)
+      f.write(str(hash_dig))
       f.truncate()
   except:
+    print(e)
     f = open(file_path, "w+", encoding='utf-8')
-    f.write(list_table)
+    f.write(str(hash(list_table)))
   finally:
     f.close()
   
